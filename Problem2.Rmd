@@ -1,0 +1,150 @@
+---
+title: "Problem2"
+author: "Marvin Chen"
+date: '2022-09-23'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidyquant)  
+library(ggplot2)
+library(dplyr)
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
+
+```
+
+#problem 1.1
+
+```{r}
+ve <- vehicles
+m1 <- ve %>% select(fuelCost08,fuelType,year,highway08,highway08U)
+m2 <- m1 %>% filter(fuelType  %in%  c("CNG", "Diesel", "Gasoline or E85", "Regular", "Midgrade", "Premium"))
+m3 <- m2 %>% group_by(fuelType, year)  %>% summarise(mean(fuelCost08))
+
+ggplot(m3) +
+  aes(x = year, y = `mean(fuelCost08)`, colour = fuelType) +
+  geom_line(size = 0.5) +
+  scale_color_manual(
+    values = c(CNG = "#85CF11",
+    Diesel = "#ACA000",
+    `Gasoline or E85` = "#04BB00",
+    Midgrade = "#1E68EB",
+    Premium = "#111212",
+    Regular = "#D80909")
+  ) +
+  labs(
+    x = "Year(1984-2023)",
+    y = "Fuel Cost",
+    title = "Average Cost by Fuel Type"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 32L,
+    hjust = 0.5),
+    axis.title.y = element_text(size = 18L),
+    axis.title.x = element_text(size = 18L)
+  )
+
+# Summary:
+# The cost of gas kepp decreasing with time, that might be affected by hybrid and electric vehicles. 
+
+
+
+
+
+```
+
+#problem 1.2
+
+```{r}
+m4 <- ve %>% select(fuelCost08,fuelType,year,make)
+m5 <- m4 %>% filter(fuelType  %in%  c("CNG", "Diesel", "Regular", "Midgrade", "Premium"))
+m6 <- m5 %>% group_by(make,year,fuelType) %>% summarise(avcost = mean(fuelCost08))
+# only pick annul cost greater than 5000
+m7 <- m6 %>% filter(avcost >= 5000)
+
+m7 %>%
+ filter(!(make %in% c("Alfa Romeo", "BMW", "Chevrolet", "J.K. Motors", "Laforza Automobile Inc", 
+"Ram", "Ruf Automobile Gmbh", "S and S Coach Company E.p. Dutton", "Superior Coaches Div E.p. Dutton", 
+"Tecstar, LP", "Wallace Environmental"))) %>%
+ ggplot() +
+  aes(x = year, y = avcost, colour = fuelType) +
+  geom_line(size = 0.5) +
+  scale_color_manual(
+    values = c(Diesel = "#F8766D",
+    Premium = "#00C19F",
+    Regular = "#61FFBB")
+  ) +
+  labs(title = "Fuel Cost Change by Make") +
+  theme_classic() +
+  facet_wrap(vars(make), scales = "free_y") 
+ 
+
+```
+
+#problem 2
+
+```{r}
+ixm <- IXIC21.22
+ix <- filter(ixm, Date >= as.Date("2021-09-20"), Date <= as.Date("2022-09-20"))
+i <- tq_get("ix", get = "Adj.Close", from = "2021-09-20", to = "2022-09-20")
+ix %>%
+    ggplot(aes(x = Date, y = Adj.Close)) +
+    geom_candlestick(aes(open = Open, high = High, low = Low, close = Close)) +
+    labs(title = "Candlestick Chart", y = "Closing Price", x = "") +
+    theme_tq()
+```
+
+#problem 3.1
+
+```{r}
+r <- ruralCapacityData
+#ignore the data from Bernalillo County
+filter(r, County != "Bernalillo County")
+ggplot(r) +
+  aes(x = per_over_25_with_bach, y = cap_index) +
+  geom_point(shape = "circle", size = 1.5, colour = "#112446") +
+  geom_smooth(span = 0.75) +
+  theme_minimal()
+```
+
+#problem 3.2
+
+```{r}
+ggplot(r) +
+  aes(
+    x = per_over_25_with_bach,
+    y = house_broadband,
+    colour = cap_index
+  ) +
+  geom_point(shape = "circle", size = 1.5) +
+  scale_color_gradient(low = "#132B43", high = "#E13838") +
+  theme_minimal()
+```
+
+#problem 3.3
+
+```{r}
+r1 <- filter(r, pop_total <= 16000)
+r2 <- filter(r, pop_total > 16000 & pop_total <= 55000)
+r3 <- filter(r, pop_total >55000)
+r4 <- mutate(r1,group = "<16000")
+r5 <- mutate(r2, group = "16000< <55000")
+r6 <- mutate(r3, group = ">55000 ")
+rr <- rbind(r4,r5,r6)
+ggplot(rr) +
+  aes(
+    x = per_over_25_with_bach,
+    y = cap_index,
+    colour = group
+  ) +
+  geom_point(shape = "circle", size = 3.5) +
+  scale_color_hue(direction = 1) +
+  labs(title = "Cap_Index by Population size") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 24L, hjust = 0.5))
+
+```
