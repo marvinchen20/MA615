@@ -418,14 +418,18 @@ mean <- as.numeric(caosale$Value[1])
 mean - 1.96*mean*0.137
 mean + 1.96*mean*0.137
 
-
-canosale <- strawb_non_organic %>% group_by(State) %>% filter(Year == "2016", State == "CALIFORNIA",Value != "(NA)" & Value != "(D)" )
-canosale$Value
-mean(as.numeric(canosale$Value))
-
-strawb_chem %>% unique(chem_name)
-
 length(unique(strawb_chem$chem_name))
+
+
+ca <- filter(strawb_chem,Year == "2016", State == "CALIFORNIA")
+
+
+flo <- filter(strawb_chem,Year == "2016", State == "FLORIDA")
+
+length(unique(ca$chem_name)) - length(unique(flo$chem_name))
+
+
+
 
 
 
